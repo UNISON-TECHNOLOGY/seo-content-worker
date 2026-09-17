@@ -1,5 +1,8 @@
 # SEO Content Worker for Claude Cowork
 
+> **利用者向けの配布はこちら → https://github.com/UNISON-TECHNOLOGY/seo-content-worker** （marketplace に追加する URL・`.plugin` のダウンロードはこのリポジトリ。ログイン不要）
+> `unison-ai-product/Browser_Worker-for-SEO` は開発用で、`main` は作業中の状態を含みます。
+
 SEO 記事のコンテンツ制作を、①SERPs解析 → ②記事分析 → ③構成案 → ④記事作成・WP 下書きの 4 段階で回す Cowork プラグイン。
 ブラウザ操作は browser-worker（Delvework）のゲート機構を同梱して自己完結。サブエージェントは Sonnet 実行 / Haiku 検査 / Opus 統合判断の 3 層。成果物はスプレッドシート、記事は WP 下書きのみ、記憶は SQLite。
 
@@ -10,7 +13,7 @@ SEO 記事のコンテンツ制作を、①SERPs解析 → ②記事分析 → �
    - 公開リポジトリなので GitHub ログインは不要。ログインを求められたら URL の打ち間違い（組織名は `UNISON-TECHNOLOGY`、リポジトリ名は `seo-content-worker`）。存在しない URL だと GitHub が非公開扱いで認証を求めてくる。
    - Git を使わない入れ方: [Releases](https://github.com/UNISON-TECHNOLOGY/seo-content-worker/releases/latest) の `.plugin` ファイルをダウンロードして Cowork にドラッグ。
 2. Claude in Chrome をコネクタで ON（Google・WP のログイン済みブラウザを使う）。Google ドライブ連携も ON（スプレッドシート出力）。
-3. `/SEO設定` を順に: `db`（SQLite 初期化）→ `sheet`（成果物シート・キーワードマップ）→ `wp`（サイト URL・投稿方法。REST を使うならアプリケーションパスワードを **あなたが** ワークスペース直下のテキストファイル（`.env` または `wp*.txt`、2 行）に置く。チャットには貼らない）→ `profile`（想定検索者・ファネル・カテゴリ・CTA などサイト固有の値）→ `rules`（表記・装飾の差分抽出）→ 必要なら `memory`（自社の主張・一次情報の取り込み）。
+3. `/SEO設定` を実行（引数なし）。保存先フォルダ → 記憶 DB → サイトプロファイル → スプレッドシート → WordPress → 表記ルールの順に案内され、済んだ段は飛ばして続きから再開する。必須は最初の 2 つだけで、残りは「あとで」を選べる（空の間は未設定モードで動く）。WP を REST で使うなら、アプリケーションパスワードは **あなたが** 保存先フォルダ直下のテキストファイル（`.env` または `wp*.txt`、2 行）に置く。チャットには貼らない。
 
 ## 使い方
 
