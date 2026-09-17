@@ -1,0 +1,72 @@
+# Changelog
+
+形式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/)、版は [Semantic Versioning](https://semver.org/lang/ja/)。
+タグ `vX.Y.Z` の Release ノートはこのファイルの該当節を正とする。
+
+## [Unreleased]
+
+## [0.2.0] - 2026-09-17
+
+### Changed
+- 配布を `UNISON-TECHNOLOGY/seo-content-worker` に分離。開発リポジトリの `main` は利用者に届かず、タグを切ったときだけ配布側へ同期される（`scripts/build-dist.py` + Release ワークフロー）
+- README に marketplace の正確な URL を明記（URL 誤りで GitHub ログインを求められる問題）
+
+### Added
+- `scripts/verify.sh` — CI / Release / `/SEO検証` が共通で呼ぶ検証コマンド（manifests・構造・スクリプト・hooks・DB・WP 拒否・リリース整合）
+- CHANGELOG.md
+
+### Fixed（外部監査 3 回目 2026-09-16）
+- Secret Guard: コマンドを `;` `&&` `||` `|` で区切って区切りごとに判定（`ls .env; cat .env` を拒否）。ワイルドカード（`.e*` / `*.env` / `wp*`）で認証メモを指す読み出しは一律拒否。matcher に Grep / PowerShell を追加
+- Publish Guard: REST 直叩きの判定も区切りごと（`wp-draft.py --check; curl …/wp-json/…` を拒否）。PowerShell の Invoke-RestMethod / Invoke-WebRequest も対象。matcher に PowerShell を追加
+- Publish Guard（ブラウザ）: クリック判定から type の `text` を外し（browser_batch の誤検知）、「更新 / Update」は完全一致だけ（「更新日時で並べ替え」は通す）
+- Injection Warn: 英語パターンに語境界、「AIへ」は指示形（「AIへの指示」「AIへ:」）に限定、HTML コメントは AI 語 + 指示語の組み合わせだけ。LLMO 記事の通常文（「AIへの最適化」「for LLMO」「<!-- main container -->」）で警告しない
+- test-hooks.sh: 57 項目
+
+### Fixed（外部監査 2 回目 2026-09-16）
+- Publish Guard（Bash）: REST の直叩き（curl / requests / `wp-json/wp/v2/posts` / `rest_route=`）は wp-draft.py 以外一律拒否（JSON 本文の status は文字判定で網羅できないため）。`wp post list/get --post_status=publish`（読むだけ）は通す
+- Publish Guard（ブラウザ）: 文字判定はクリック系（Playwright の element 説明）・JS・ショートカット・key にだけ当て、type / form_input の本文（「公開ボタンの押し方」等）では止めない。JS の `editPost({status:'publish'})` `Ctrl+Alt+P` を拒否。stage=write 中は JS・ショートカット・key を全面停止。**Claude in Chrome の ref / 座標クリックは判定できない**ことをコメント・手順書・テストに明記
+- Secret Guard（新設）: WP 認証メモ（.env / *.env / wp*.txt）の Read / cat 等を拒否（ls / test / wp-draft.py は許可）
+- keyword-gate.py `--h2-median-file`: ファイルが無い／数字でないときは分かりやすい exit 2
+- Injection Warn: 作業ファイル（memory/work/ knowledge/ outputs/）の Read も検査対象に（サブエージェントが Web から写した文字列）。SEO 向けの誘導パターン（「この記事を公開して」「AI アシスタントへ」「URL にアクセスして」「認証情報を入力して」、HTML コメントの AI 指示）を追加
+- test-hooks.sh: 45 項目
+
+### Fixed（外部監査 2026-09-16）
+- Publish Guard: `wp eval` / `wp db query` / `wp post update --post_status` 経由の公開も拒否。wp-draft.py の投稿に psv_done（送信前監査 GO）の証跡を要求（`--check` は免除）
+- Workflow Gate: ブラウザ操作の「公開 / 予約投稿 / 更新 / Publish / Schedule」を常時拒否（文字列を持つ操作のみ。座標クリックは既知の限界）。stage=write の間は psv_done まで変更操作を止める（旧 bulk_send 条件を置換）
+- keyword-gate.py: `--required` のファイルが無ければ exit 2（黙って PASS しない）、未指定は警告。`--h2-median` で H2 数を中央値 ± h2_tolerance で判定。コードブロック内の `## ` を見出しに数えない。表・画像行を文長判定から除外。selftest に `--keyword` / fence / h2-median の検査を追加
+- seo-analysis 手順8: required_keywords.txt と h2_median.txt の書き出しを明記。seo-write 手順6 にも `--keyword` `--h2-median` を追加、`--media` は 1 枚ずつ
+- seo-db.py knowledge search: 部分一致フォールバックを title / meta_description / body / tags に拡張（2 文字語が 0 件になる問題）
+- wp-draft.py: `https://` 以外のサイトを拒否。認証ファイルは `.env` だけでなく `*.env` / `wp*.txt` 等のメモでもよい（BOM・全角空白を許容。AI は存在確認のみ）
+- seo-db.py: JSON のキーがテーブルに無い列なら traceback ではなく列一覧付きで exit 2。`--keyword` を全テーブルの add で有効化
+- docs/steps/review.md・money-recovery.md・speed.md を本プラグインの手順に書き直し（旧プラグインの pre-send-verifier / bulk-send / strategy-advisor 参照を除去）。_common.sh / session-start.sh の url-guard・verify_allowlist 参照を除去。ga4-analysis の他プラグイン名を除去
+- seo-write 手順3: 図解は HTML → ローカル HTTP 配信 → スクリーンショット PNG（file:// は不可）
+
+### Added
+- 未設定モード: config.yaml の own_domain / sheet_id / WP 認証が無くても止まらず、挙動を切り替えて完了する（procedures/seo-article.md §4 の表）。keyword-gate.py `--profile` で own_domain が空なら内部リンク最小本数は警告扱い。WP 未設定なら outputs/<kw>/ にファイル納品
+
+### Changed
+- keyword-gate.py: `--keyword` でタイトル判定を施策キーワードのトークンで行う。rules が未配置なら templates/gate_rules.yaml に fallback（警告付き）、入力欠落は traceback ではなく exit 2
+- seo-outline / gate-script: outline.md は骨組みだけ、補助情報は outline_notes.md に分離（H2 数の誤カウント防止）
+- seo-analysis: 記事 URL は serps.json の href を使う。meta / JSON-LD は WebFetch では取れないので read_page で取る
+- seo-serps: 実機試験の知見を反映（検索はボタン押下、AIO は read_page で取得、Search Console Insights を personalized の証拠に）
+
+## [0.1.0] - 2026-09-16
+
+### Added
+- 入口コマンド 7 本（/SEO記事 /SERPs解析 /記事分析 /構成案 /記事作成 /SEO設定 /SEO検証）と手順書 8 本
+- スキル 11 本（seo-analysis / seo-outline / content-marketing / seo-writing(references 4 分割) / media-rules / gate-script / diagram-maker / llmo-analysis / gsc-analysis / ga4-analysis / user-original）
+- サブエージェント 9 体（Sonnet 実行 4 / Haiku 検査 3 / Opus 統合判断 2）
+- フック: Workflow Gate / Publish Guard / Subagent Guard / RM Guard / Flag Guard / Drop Guard / Injection Warn / SessionStart
+- テンプレート: スプレッドシート列定義、SQLite スキーマ（knowledge_items + FTS5）、config、site-profile 例、gate_rules、analysis 例、figure.html
+- スクリプト: seo-db.py（SQLite）、wp-draft.py（REST 下書きのみ）、keyword-gate.py（機械判定）、test-hooks.sh
+- CI（構造検証・hooks・selftest・DB）と Release（タグ push で `.plugin` を添付）ワークフロー
+- MIT License
+
+### Decided
+- キーワードだけの入力は /SEO記事 として WP 下書きまで承認なしで進む。単体コマンドはその段階で止まる
+- 公開（publish / future / private）は AI 不可。下書きもゲート PASS の証跡が無ければ不可
+- 成果物はスプレッドシート、記事は WP 下書きのみ、記憶は SQLite
+
+[Unreleased]: https://github.com/UNISON-TECHNOLOGY/seo-content-worker/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/UNISON-TECHNOLOGY/seo-content-worker/releases/tag/v0.2.0
+[0.1.0]: https://github.com/unison-ai-product/Browser_Worker-for-SEO/releases/tag/v0.1.0

@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+# ワークスペース側の状態（プラグイン本体には含めない）
+memory/
+knowledge/
+outputs/
+.env
+*.env
+wp*.txt
+WP*.txt
+wordpress*.txt
+.claude/
+seo-content-worker.plugin
