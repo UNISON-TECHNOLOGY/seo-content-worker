@@ -5,6 +5,13 @@
 
 ## [Unreleased]
 
+## [0.2.5] - 2026-09-17
+
+### Changed
+- メイン（会話の本体）を「ステップ進行役」に限定: 読み解く・組み立てる・書くはサブエージェントに渡し、メインは起動・ファイルの受け渡し・フラグ・ブラウザ操作・スクリプト実行だけ（メインのモデルが何であっても所要時間が変わらないように）。① の抽出は serp-collector へ必ず委譲、② の統合・③ の構成案の組み立てと修正・④ のユニット brief は新設の outline-builder（Sonnet, effort medium, ツールは Read/Write/Edit、呼び出し上限 14 回）へ
+- 用語: 「メインループ」→「メイン（ステップ進行役）」（ワークフローはループではなくステップ）
+- 機械的な作業の Sonnet 3 体（serp-collector / article-analyzer / diagram-maker）のエフォートを medium → low に。本文を書く unit-drafter と Opus の 2 体（敵対検証・統合）は medium のまま
+
 ## [0.2.4] - 2026-09-17
 
 ### Fixed（仕様メモとの突合で見つけたずれ。v0.2.3 の速度改善で入れてしまった分を含む）
@@ -111,7 +118,8 @@
 - 公開（publish / future / private）は AI 不可。下書きもゲート PASS の証跡が無ければ不可
 - 成果物はスプレッドシート、記事は WP 下書きのみ、記憶は SQLite
 
-[Unreleased]: https://github.com/UNISON-TECHNOLOGY/seo-content-worker/compare/v0.2.4...HEAD
+[Unreleased]: https://github.com/UNISON-TECHNOLOGY/seo-content-worker/compare/v0.2.5...HEAD
+[0.2.5]: https://github.com/UNISON-TECHNOLOGY/seo-content-worker/releases/tag/v0.2.5
 [0.2.4]: https://github.com/UNISON-TECHNOLOGY/seo-content-worker/releases/tag/v0.2.4
 [0.2.3]: https://github.com/UNISON-TECHNOLOGY/seo-content-worker/releases/tag/v0.2.3
 [0.2.2]: https://github.com/UNISON-TECHNOLOGY/seo-content-worker/releases/tag/v0.2.2
