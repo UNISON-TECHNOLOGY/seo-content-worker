@@ -22,11 +22,12 @@ argument-hint: <検索キーワード>
 3. **抽出**（serp-collector が行う。手順4 のあとに 1 回だけ起動し、手順3 と 5 をまとめて任せる。skills/seo-analysis の定義に従う。材料は手順2・4 のファイルだけ。追加のブラウザ操作はしない）:
    - AIO: `aio.text` と `aio.links`。`aio: null` なら `aio: none` と記録し、再検索はしない。
    - 広告: `sponsored: true` の件数を数え、記事順位の計算から除外する。
-   - 記事サイトの出現順位: AIO・広告・動画カルーセル・ショッピング・地図・ニュース・SNS（X / YouTube / Instagram）・EC（Amazon / 楽天）・Yahoo!知恵袋を除いた**記事型ページ**の順に 1 から採番。除外した要素は `serp_features` として種類と位置を記録する。
+   - 記事サイトの出現順位: AIO・広告・動画カルーセル・ショッピング・地図・ニュース・SNS（X / YouTube / Instagram）・EC（Amazon / 楽天）・Yahoo!知恵袋を除いた**記事型ページ**の順に 1 から採番（仕様 ①-3 は「AIO と広告枠を除いて数える」— ユーザー確認 2026-09-17）。除外した要素は `serp_features` として種類と位置を記録する。
    - 関連する質問（PAA）: 質問文（JSON）と、開いた最大 8 問の回答要約・出典 URL（テキスト）。
    - 関連する商品やサービス / 他の人はこちらも検索 / サジェスト: 語句のリスト。
 4. **上位 5 記事のページ構造を 1 往復で取る**（② がこのファイルをそのまま使う。② でブラウザを開き直さない）: 上位 5 記事と知恵袋（あれば 1 件）について、**browser_batch の 1 回**で `navigate <href>` → javascript_tool ← `${CLAUDE_PLUGIN_ROOT}/templates/js/page-extract.js` の中身、を記事の数だけ並べる。返った JSON を `memory/work/<kw>/pages/<順位>.json`（知恵袋は `pages/chiebukuro.json`）に保存する。これでメタディスクリプション（実 `<meta>`）・見出し階層・H2 配下の内部リンク・JSON-LD・公開日/更新日・著者・文字数が揃う（読み取り専用なのでゲートは不要）。取れなかった記事（403・JS 描画で本文が空）だけ WebFetch で補う。
 5. serp-collector が `serps.json` と `serps.md` を組み立てる（上位 5 記事: 順位・タイトル・URL・SERP スニペット・`meta_description`）。
+5.5. **自社記事の有無**（`own_domain` が設定済みのとき）: オーガニック全件と AIO の引用に `own_domain` の URL があるかを見て、`serps.json` に `own_in_serp: [{rank, url}]` を入れる。あれば完了報告の先頭に「自社記事が <順位> 位にあります: <URL>。新規記事を足すと同じクエリで食い合うので、既存記事のリライトが候補です」と 1 行で書く。
 6. **記録**:
    - `memory/work/<kw>/serps.md` に整形（templates/sheet-layout.md の `SERPs` シート列順で）。
    - スプレッドシート `SERPs` シートに 1 行追記（Drive の MCP ツール。`config.yaml` の `sheet_id`。列順はレイアウト正本に従う）。
